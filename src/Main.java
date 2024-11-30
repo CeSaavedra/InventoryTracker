@@ -1,5 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) {
@@ -43,7 +45,6 @@ public class Main {
                 JPanel titlePanel = new JPanel();
                 page.add(titlePanel, BorderLayout.NORTH);
 
-
                 //=============== INVENTORY PAGE ===============
                 if (item.equals("Inventory")) {
                     JPanel inventoryPanel = new JPanel(new GridLayout(3, 1));
@@ -61,6 +62,13 @@ public class Main {
                     }
 
                     page.add(inventoryPanel, BorderLayout.CENTER);
+
+                    // Connect to the database and verify connection
+                    try (Connection connection = DatabaseConnector.getConnection()) {
+                        System.out.println("Connected to the database");
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
 
                 //=============== HOME PAGE ===============
                 } else if (item.equals("Home")) {
