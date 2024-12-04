@@ -10,12 +10,12 @@ import java.util.List;
 import javax.swing.*;
 
 public class Main {
-
+    
     public class DatabaseConnection {
 
         private static final String URL = "jdbc:mysql://localhost:3306/jsykes9db";
-        private static final String USER = "yourUsername";
-        private static final String PASSWORD = "yourPassword";
+        private static final String USER = "root";
+        private static final String PASSWORD = "kyle8823";
 
         public static Connection getConnection() throws SQLException {
             return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -127,6 +127,34 @@ public class Main {
         wishlistPanel.repaint();
     }
 
+    public static void addToOrders(JPanel orderPanel, Set<Integer> orderSet, int id, String name, String category, String description, double price) {//what happens when you BUY an item
+        JPanel orderProductPanel = new JPanel(new GridLayout(1, 5));
+        orderProductPanel.setPreferredSize(new Dimension(800, 30));  // Set fixed height for product panels
+        orderProductPanel.add(new JLabel("  " + name));
+        orderProductPanel.add(new JLabel(category));
+        orderProductPanel.add(new JLabel(description));
+        orderProductPanel.add(new JLabel("$" + price));
+
+        JLabel removeLabel = new JLabel("<html><font color='red'><u>Remove</u></font></html>");
+        removeLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));  // Change cursor to hand
+        removeLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                orderPanel.remove(orderProductPanel);
+                orderSet.remove(id);  // Remove the product ID from the set
+                orderPanel.revalidate();
+                orderPanel.repaint();
+            }
+        });
+        orderProductPanel.add(removeLabel);
+
+        orderPanel.add(orderProductPanel);
+
+        // Refresh the order panel
+        orderPanel.revalidate();
+        orderPanel.repaint();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Inventory Tracker");
@@ -158,12 +186,18 @@ public class Main {
             final JPanel wishlistPanel = new JPanel();
             wishlistPanel.setLayout(new BoxLayout(wishlistPanel, BoxLayout.Y_AXIS));
 
+            //initialize Orders Panel
+            final JPanel ordersPanel = new JPanel();
+            ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS));
+
             // Initialize home panel here to ensure it's accessible
             final JPanel homePanel = new JPanel();
             homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
 
             // Wishlist tracking
             Set<Integer> wishlistSet = new HashSet<>();
+
+            Set<Integer> orderSet = new HashSet<>();
 
             for (String item : navItems) {
                 JButton navButton = new JButton(item);
@@ -257,6 +291,18 @@ public class Main {
                             }
                         });
 
+                         // Buy button action
+                         buyButton.addActionListener(e -> {
+                            if (orderSet.contains(finalProductId)) {
+                                JOptionPane.showMessageDialog(frame, "Already purchased");
+                            } else {
+                                wishlistSet.add(finalProductId);
+                                // Add the product to the order panel
+                                addToOrders(ordersPanel, orderSet, finalProductId, finalProductName, finalCategory, finalDescription, finalPrice);
+                                JOptionPane.showMessageDialog(frame, "Added purchased, added to Orders");
+                            }
+                        });
+
                         productPanel.add(buyButton);
                         productPanel.add(wishlistButton);
                         homePanel.add(productPanel);
@@ -286,6 +332,29 @@ public class Main {
                     wishlistWrapperPanel.add(new JScrollPane(wishlistPanel), BorderLayout.CENTER);
 
                     page.add(wishlistWrapperPanel, BorderLayout.CENTER);
+
+                    //=============== Orders PAGE ===============
+                } else if (item.equals("Orders")) {
+                    ordersPanel.removeAll();
+                    ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS));
+
+                    // Add headers
+                    JPanel ordersHeaderPanel = new JPanel(new GridLayout(1, 5));
+                    ordersHeaderPanel.add(new JLabel("<html><b>  Product Name</b></html>"));
+                    ordersHeaderPanel.add(new JLabel("<html><b>Category</b></html>"));
+                    ordersHeaderPanel.add(new JLabel("<html><b>Description</b></html>"));
+                    ordersHeaderPanel.add(new JLabel("<html><b>Price</b></html>"));
+                    ordersHeaderPanel.add(new JLabel("")); // Placeholder for remove button column
+                    ordersHeaderPanel.setPreferredSize(new Dimension(800, 60));  // Set fixed height for header
+                    ordersHeaderPanel.setBorder(BorderFactory.createEmptyBorder());
+
+                    // Wrapper panel to hold both header and content
+                    JPanel ordersWrapperPanel = new JPanel();
+                    ordersWrapperPanel.setLayout(new BorderLayout());
+                    ordersWrapperPanel.add(ordersHeaderPanel, BorderLayout.NORTH);
+                    ordersWrapperPanel.add(new JScrollPane(ordersPanel), BorderLayout.CENTER);
+
+                    page.add(ordersWrapperPanel, BorderLayout.CENTER);
                 }
 
                 mainContent.add(page, item);
