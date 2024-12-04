@@ -13,14 +13,24 @@ public class Main {
     
     public class DatabaseConnection {
 
-        private static final String URL = "jdbc:mysql://localhost:3306/jsykes9db";
-        private static final String USER = "root";
-        private static final String PASSWORD = "kyle8823";
-
+        private static final String URL = "jdbc:mysql://localhost:3306/csaaved1db"; // Update with your database name
+        private static final String USER = "root"; // Your MySQL Workbench username
+        private static final String PASSWORD = "password_here"; // Your MySQL Workbench password
+    
+        static {
+            try {
+                DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
+                System.out.println("Connector Found!");
+            } catch (SQLException e) {
+                throw new RuntimeException("MySQL JDBC Driver not found.", e);
+            }
+        }
+    
         public static Connection getConnection() throws SQLException {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         }
     }
+    
 
     public class ProductDAO {
 
@@ -156,6 +166,16 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        
+        try {
+            Connection connection = DatabaseConnection.getConnection(); 
+            System.out.println("Connection to the database established successfully!");
+            // Close the connection when done connection.close(); 
+            } catch (SQLException e) { 
+                System.err.println("Failed to establish connection to the database: " + e.getMessage());
+        }
+        
+
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Inventory Tracker");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
