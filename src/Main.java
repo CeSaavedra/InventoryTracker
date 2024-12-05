@@ -4,12 +4,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.List;
 import javax.swing.*;
-
 
 public class Main {
 
-    private static JPanel settingsPanel; 
+    private static JPanel settingsPanel;
+    private static JPanel homeWrapperPanel;
+
     private static boolean isUserAuthenticated = false;
     private static String authenticatedUserEmail = null;
 
@@ -19,6 +21,9 @@ public class Main {
 
     // =============== MAIN FUNC OF APPLICATION ===============
     public static void main(String[] args) {
+
+        homeWrapperPanel = new JPanel(new BorderLayout());
+
 
         // Tests whether or not the Java executable was able to connect to DB
         try {
@@ -58,7 +63,7 @@ public class Main {
             // =============== PANEL DECLARATIONS ===============
             JPanel mainContent = new JPanel(new CardLayout()); // Initializes Main Page
             settingsPanel = new JPanel(); // Initialize Settings Panel
-            settingsPanel.setLayout(new BoxLayout(settingsPanel, BoxLayout.Y_AXIS)); 
+            settingsPanel.setLayout(new BoxLayout(settingsPanel, BoxLayout.Y_AXIS));
 
             final JPanel wishlistPanel = new JPanel(); // Initialize Wishlist Panel
             wishlistPanel.setLayout(new BoxLayout(wishlistPanel, BoxLayout.Y_AXIS));
@@ -115,16 +120,13 @@ public class Main {
                     // ==============================================
 
                 } else if (item.equals("Home")) {
-
                     // Declares DatabaseHelper Instance
-                    DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser,
-                            currentPassword);
-
+                    DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
+                
                     // Replaces current Panel with Home Panel
                     homePanel.removeAll();
-                    homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed height
-                                                                                     // rows
-
+                    homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed height rows
+                
                     // Sets the Column Headers
                     JPanel homeHeaderPanel = new JPanel(new GridLayout(1, 6));
                     homeHeaderPanel.add(new JLabel("<html><b>  Product Name</b></html>"));
@@ -135,19 +137,18 @@ public class Main {
                     homeHeaderPanel.add(new JLabel("")); // Placeholder for wishlist button column
                     homeHeaderPanel.setPreferredSize(new Dimension(800, 60)); // Set fixed height for header
                     homeHeaderPanel.setBorder(BorderFactory.createEmptyBorder());
-
+                
                     // Wrapper Panel
-                    JPanel homeWrapperPanel = new JPanel();
+                    homeWrapperPanel = new JPanel();
                     homeWrapperPanel.setLayout(new BorderLayout());
                     homeWrapperPanel.add(homeHeaderPanel, BorderLayout.NORTH);
                     homeWrapperPanel.add(new JScrollPane(homePanel), BorderLayout.CENTER);
-
+                
                     // Load Products from DB
-                    dbHelper.loadProducts(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel,
-                            orderSet, frame);
+                    dbHelper.loadProducts(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel, orderSet, frame, authenticatedUserEmail);
                     page.add(homeWrapperPanel, BorderLayout.CENTER);
-                    // End of Home Page
-
+                
+                
                     // ==============================================
                     // =============== WISHLIST PAGE ================
                     // ==============================================
@@ -176,64 +177,86 @@ public class Main {
                     page.add(wishlistWrapperPanel, BorderLayout.CENTER);
                     // End of Wishlist Page
 
-                // ==============================================
-                // =============== ORDERS PAGE ==================
-                // ==============================================
+                    // ==============================================
+                    // =============== ORDERS PAGE ==================
+                    // ==============================================
                 } else if (item.equals("Orders")) {
-                    ordersPanel.removeAll();
-                    ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS));
+                    // Declares DatabaseHelper Instance
+                    DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
 
-                    // Add headers
-                    JPanel ordersHeaderPanel = new JPanel(new GridLayout(1, 5));
-                    ordersHeaderPanel.add(new JLabel("<html><b>  Product Name</b></html>"));
-                    ordersHeaderPanel.add(new JLabel("<html><b>Category</b></html>"));
-                    ordersHeaderPanel.add(new JLabel("<html><b>Description</b></html>"));
-                    ordersHeaderPanel.add(new JLabel("<html><b>Price</b></html>"));
-                    ordersHeaderPanel.add(new JLabel("")); // Placeholder for remove button column
+                    // Replaces current Panel with Orders Panel
+                    ordersPanel.removeAll();
+                    ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed
+                                                                                         // height rows
+
+                    // Sets the Column Headers
+                    JPanel ordersHeaderPanel = new JPanel(new GridLayout(1, 4));
+                    ordersHeaderPanel.add(new JLabel("")); // Placeholder for column 1
+                    ordersHeaderPanel.add(new JLabel("")); // Placeholder for column 2
+                    ordersHeaderPanel.add(new JLabel("")); // Placeholder for column 3
+                    ordersHeaderPanel.add(new JLabel("")); // Placeholder for column 4
                     ordersHeaderPanel.setPreferredSize(new Dimension(800, 60)); // Set fixed height for header
                     ordersHeaderPanel.setBorder(BorderFactory.createEmptyBorder());
 
-                    // Wrapper panel to hold both header and content
+                    // Wrapper Panel
                     JPanel ordersWrapperPanel = new JPanel();
                     ordersWrapperPanel.setLayout(new BorderLayout());
                     ordersWrapperPanel.add(ordersHeaderPanel, BorderLayout.NORTH);
                     ordersWrapperPanel.add(new JScrollPane(ordersPanel), BorderLayout.CENTER);
 
+                    // Sample data, replace this with actual data retrieval
+                    String productName = "Sample Product";
+                    String categoryType = "Sample Category";
+                    String totalPrice = "100.00";
+                    String tax = "10.00";
+                    String qtyPurchased = "1";
+                    String orderNo = "ORD123";
+                    String supplierName = "Supplier Inc.";
+                    String customerAddress = "123 Customer St.";
+                    String warehouseAddress = "456 Warehouse Rd.";
+                    String outpostAddress = "789 Outpost Ave.";
+                    String estimatedDelivery = "2023-12-12";
+
+                    // Create and add the product row panel
+                    JPanel productRowPanel = DatabaseHelper.createProductRowPanel(
+                            productName, categoryType, totalPrice, tax, qtyPurchased, orderNo,
+                            supplierName, customerAddress, warehouseAddress, outpostAddress, estimatedDelivery);
+                    ordersPanel.add(productRowPanel);
+
+                    ordersPanel.revalidate();
+                    ordersPanel.repaint();
+
                     page.add(ordersWrapperPanel, BorderLayout.CENTER);
 
+                    // ==============================================
+                    // =============== SETTINGS PAGE ================
+                    // ==============================================
+                } else if (item.equals("Settings")) {
+                    settingsPanel.removeAll();
+                    settingsPanel.setLayout(new GridLayout(5, 2)); // 5 rows and 1 column
 
-                // ==============================================
-                // =============== SETTINGS PAGE ================
-                // ==============================================
-            } else if (item.equals("Settings")) {
-                settingsPanel.removeAll();
-                settingsPanel.setLayout(new GridLayout(5, 2)); // 5 rows and 1 column
-            
-                // Add the content to settingsPanel
-                settingsPanel.add(new JLabel("First Name:"));
-                settingsPanel.add(new JLabel("John")); // Placeholder data
-                settingsPanel.add(new JLabel("Last Name:"));
-                settingsPanel.add(new JLabel("Doe")); // Placeholder data
-                settingsPanel.add(new JLabel("Address:"));
-                settingsPanel.add(new JLabel("123 Main St")); // Placeholder data
-                settingsPanel.add(new JLabel("Email:"));
-                settingsPanel.add(new JLabel("john.doe@example.com")); // Placeholder data
-                settingsPanel.add(new JLabel("Phone No:"));
-                settingsPanel.add(new JLabel("555-1234")); // Placeholder data
-            
-                // Make the settings panel scrollable
-                JScrollPane scrollPane = new JScrollPane(settingsPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            
-                // Wrapper panel to hold settingsPanel
-                JPanel settingsWrapperPanel = new JPanel(new BorderLayout());
-                settingsWrapperPanel.add(scrollPane, BorderLayout.CENTER);
-            
-                page.add(settingsWrapperPanel, BorderLayout.CENTER);
-            }
-            
-            
-                
-                
+                    // Add the content to settingsPanel
+                    settingsPanel.add(new JLabel("First Name:"));
+                    settingsPanel.add(new JLabel("John")); // Placeholder data
+                    settingsPanel.add(new JLabel("Last Name:"));
+                    settingsPanel.add(new JLabel("Doe")); // Placeholder data
+                    settingsPanel.add(new JLabel("Address:"));
+                    settingsPanel.add(new JLabel("123 Main St")); // Placeholder data
+                    settingsPanel.add(new JLabel("Email:"));
+                    settingsPanel.add(new JLabel("john.doe@example.com")); // Placeholder data
+                    settingsPanel.add(new JLabel("Phone No:"));
+                    settingsPanel.add(new JLabel("555-1234")); // Placeholder data
+
+                    // Make the settings panel scrollable
+                    JScrollPane scrollPane = new JScrollPane(settingsPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+                    // Wrapper panel to hold settingsPanel
+                    JPanel settingsWrapperPanel = new JPanel(new BorderLayout());
+                    settingsWrapperPanel.add(scrollPane, BorderLayout.CENTER);
+
+                    page.add(settingsWrapperPanel, BorderLayout.CENTER);
+                }
 
                 mainContent.add(page, item);
 
@@ -267,19 +290,22 @@ public class Main {
                 authenticatedUserEmail = email;
                 System.out.println("Callback executed: " + email);
                 refreshSettingsPanel();
+                refreshOrdersPanel(ordersPanel, email);
+                refreshProductsPanel(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel, orderSet,
+                        frame); // Add this line
             });
+
         });
     }
-
 
     public static void refreshSettingsPanel() {
         settingsPanel.removeAll();
         settingsPanel.setLayout(new GridLayout(6, 1)); // Adjust GridLayout for an additional row
-    
+
         if (isUserAuthenticated && authenticatedUserEmail != null) {
             DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
             DatabaseHelper.Customer customer = dbHelper.getCustomerInfo(authenticatedUserEmail);
-    
+
             if (customer != null) {
                 System.out.println("Customer details:");
                 System.out.println("First Name: " + customer.getFirstName());
@@ -287,13 +313,23 @@ public class Main {
                 System.out.println("Address: " + customer.getAddress());
                 System.out.println("Email: " + customer.getEmail());
                 System.out.println("Phone No: " + customer.getPhoneNo());
-    
-                settingsPanel.add(createRowPanel("<html><div style='padding-left: 20px;'><b>First Name:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>", customer.getFirstName()));
-                settingsPanel.add(createRowPanel("<html><div style='padding-left: 20px;'><b>Last Name:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>", customer.getLastName()));
-                settingsPanel.add(createRowPanel("<html><div style='padding-left: 20px;'><b>Address:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>", customer.getAddress()));
-                settingsPanel.add(createRowPanel("<html><div style='padding-left: 20px;'><b>Email:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>", customer.getEmail()));
-                settingsPanel.add(createRowPanel("<html><div style='padding-left: 20px;'><b>Phone No:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>", customer.getPhoneNo()));
-    
+
+                settingsPanel.add(createRowPanel(
+                        "<html><div style='padding-left: 20px;'><b>First Name:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>",
+                        customer.getFirstName()));
+                settingsPanel.add(createRowPanel(
+                        "<html><div style='padding-left: 20px;'><b>Last Name:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>",
+                        customer.getLastName()));
+                settingsPanel.add(createRowPanel(
+                        "<html><div style='padding-left: 20px;'><b>Address:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>",
+                        customer.getAddress()));
+                settingsPanel.add(createRowPanel(
+                        "<html><div style='padding-left: 20px;'><b>Email:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>",
+                        customer.getEmail()));
+                settingsPanel.add(createRowPanel(
+                        "<html><div style='padding-left: 20px;'><b>Phone No:</b>&nbsp;&nbsp;&nbsp;&nbsp;</div></html>",
+                        customer.getPhoneNo()));
+
                 // Add Delete Account button with styling and centering
                 JButton deleteAccountButton = new JButton("Delete Account");
                 deleteAccountButton.setBackground(Color.decode("#C02424"));
@@ -301,20 +337,21 @@ public class Main {
                 deleteAccountButton.setOpaque(true); // Make the button opaque to show background color
                 deleteAccountButton.setBorderPainted(false); // Remove the button border for custom styling
                 deleteAccountButton.setPreferredSize(new Dimension(150, 30)); // Set button size
-    
+
                 deleteAccountButton.addActionListener(e -> {
-                    int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete your account?", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete your account?",
+                            "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (response == JOptionPane.YES_OPTION) {
                         dbHelper.deleteAccount(authenticatedUserEmail);
                         JOptionPane.showMessageDialog(null, "Your account has been deleted.");
                     }
                 });
-    
+
                 // Create a panel with FlowLayout to center the button
                 JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
                 buttonPanel.add(deleteAccountButton);
                 settingsPanel.add(buttonPanel);
-    
+
             } else {
                 System.out.println("Error loading customer information.");
                 settingsPanel.add(new JLabel("Error loading customer information."));
@@ -323,13 +360,12 @@ public class Main {
             System.out.println("User not authenticated or email is null.");
             settingsPanel.add(new JLabel("Please log in or register to view settings."));
         }
-    
+
         settingsPanel.revalidate();
         settingsPanel.repaint();
         System.out.println("Settings panel refreshed.");
     }
-    
-    
+
     private static JPanel createRowPanel(String labelText, String valueText) {
         JPanel rowPanel = new JPanel(new BorderLayout());
         JLabel label = new JLabel(labelText);
@@ -338,10 +374,6 @@ public class Main {
         rowPanel.add(value, BorderLayout.CENTER);
         return rowPanel;
     }
-    
-    
-    
-    
 
     public interface AuthCallback {
         void onAuthSuccess(String email);
@@ -357,4 +389,53 @@ public class Main {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         }
     } // End of Test Function
+
+    public static void refreshOrdersPanel(JPanel ordersPanel, String email) {
+        ordersPanel.removeAll();
+        ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical alignment
+
+        if (email != null) {
+            DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
+            List<DatabaseHelper.Order> orders = dbHelper.getOrdersFromCustomer(email);
+
+            if (orders != null && !orders.isEmpty()) {
+                for (DatabaseHelper.Order order : orders) {
+                    JPanel orderProductPanel = DatabaseHelper.createProductRowPanel(
+                            order.getProductName(), order.getCategoryType(), String.valueOf(order.getTotalPrice()),
+                            String.valueOf(order.getSalesTax()), String.valueOf(order.getQuantityPurchased()),
+                            order.getOrderNumber(), order.getSupplierName(), order.getCustomerAddress(),
+                            order.getWarehouseAddress(), order.getOutpostAddress(), order.getEstimatedDeliveryDate());
+                    ordersPanel.add(orderProductPanel);
+                    ordersPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between panels
+                }
+            } else {
+                // No Orders Exist
+            }
+        } else {
+            System.out.println("User email is null.");
+            ordersPanel.add(new JLabel("Please log in to view orders."));
+        }
+
+        ordersPanel.revalidate();
+        ordersPanel.repaint();
+        System.out.println("Orders panel refreshed.");
+    }
+
+    public static void refreshProductsPanel(JPanel homePanel, JPanel homeWrapperPanel, JPanel wishlistPanel,
+            Set<String> wishlistSet, JPanel ordersPanel, Set<String> orderSet, JFrame frame) {
+        if (authenticatedUserEmail != null) {
+            DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
+            dbHelper.loadProducts(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel, orderSet, frame,
+                    authenticatedUserEmail);
+        } else {
+            System.out.println("User email is null.");
+            homePanel.removeAll();
+            homePanel.add(new JLabel("Please log in to view products."));
+        }
+
+        homePanel.revalidate();
+        homePanel.repaint();
+        System.out.println("Products panel refreshed.");
+    }
+
 }
