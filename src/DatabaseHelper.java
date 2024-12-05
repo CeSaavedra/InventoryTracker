@@ -202,7 +202,7 @@ public class DatabaseHelper {
     
             // Database connection setup
             try {
-                conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/csaaved1db", "root", "Sql_rootpass22");
+                conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/csaaved1db", "root", "password");
             } catch (SQLException e) {
                 e.printStackTrace();
             }

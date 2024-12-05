@@ -13,7 +13,7 @@ public class Main {
     public class DatabaseConnection {
         private static final String URL = "jdbc:mysql://localhost:3306/csaaved1db"; // DB NAME
         private static final String USER = "root"; // MySQL USERNAME
-        private static final String PASSWORD = "Sql_rootpass22"; // MySQL PASSWORD
+        private static final String PASSWORD = "password"; // MySQL PASSWORD
 
         public static Connection getConnection() throws SQLException {
             return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -117,7 +117,7 @@ public class Main {
                 } else if (item.equals("Home")) {
 
                     // Declares DatabaseHelper Instance
-                    DatabaseHelper dbHelper = new DatabaseHelper("jdbc:mysql://localhost:3306/csaaved1db", "root", "Sql_rootpass22");
+                    DatabaseHelper dbHelper = new DatabaseHelper("jdbc:mysql://localhost:3306/csaaved1db", "root", "password");
 
                     // Replaces current Panel with Home Panel
                     homePanel.removeAll();
