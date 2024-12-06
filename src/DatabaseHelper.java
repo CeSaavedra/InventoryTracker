@@ -15,8 +15,6 @@ import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.BorderFactory;
-import java.awt.Color;
 import java.text.DecimalFormat;
 
 public class DatabaseHelper {
@@ -104,11 +102,22 @@ public class DatabaseHelper {
                         JOptionPane.showMessageDialog(frame, "Already purchased");
                     } else {
                         orderSet.add(productId);
+
+                        // Fetch supplier and customer address
+                        String supplierName = getSupplierNameByProductId(productId); // Retrieve actual supplier name
+                        String customerAddress = getCustomerAddressByEmail(currentEmail); // Retrieve actual customer
+                                                                                          // address
+
+                        // Debug statements
+                        System.out.println("Supplier Name: " + supplierName);
+                        System.out.println("Customer Address: " + customerAddress);
+
                         DatabaseHelper.addToOrders(ordersPanel, orderSet, productId, productName, category, price,
-                                currentEmail);
+                                supplierName, customerAddress, currentEmail);
                         JOptionPane.showMessageDialog(frame, "Added to Orders");
                     }
                 });
+
                 productPanel.add(buyButton);
                 productPanel.add(wishlistButton);
                 homePanel.add(productPanel);
@@ -174,19 +183,17 @@ public class DatabaseHelper {
     // ===== CUSTOMER ADDS PRODUCT TO ORDERS ========
     // ==============================================
     public static void addToOrders(JPanel orderPanel, Set<String> orderSet, String id, String name, String category,
-            double price, String currentEmail) {
+            double price, String supplierName, String customerAddress, String currentEmail) {
         // Create an instance of DatabaseHelper
         DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
 
-        // Sample values for the other fields
+        // Calculate tax and total
         Double tax = calculateSalesTax(price);
         Double total = price + tax;
         DecimalFormat df = new DecimalFormat("#.00");
         String formattedTotalPrice = df.format(total);
         String formattedTax = df.format(tax);
         String qtyPurchased = "1"; // Assuming a default value for quantity purchased
-        String supplierName = "Sample Supplier"; // Replace with actual value
-        String customerAddress = "123 Customer St."; // Replace with actual value
         String warehouseAddress = dbHelper.getRandomWarehouseId(); // Use the random warehouse address
         String outpostAddress = "789 Outpost Ave."; // Replace with actual value
         LocalDate estimatedDeliveryDate = LocalDate.now().plusDays(7);
@@ -210,7 +217,7 @@ public class DatabaseHelper {
 
         // Row 3
         orderProductPanel.add(createLabel("<html><b>Total Price:</b> " + formattedTotalPrice + "</html>"));
-        orderProductPanel.add(createLabel("<html><b>Supplier:</b></html>"));
+        orderProductPanel.add(createLabel("<html><b>Supplier:</b>" + supplierName + "</html>"));
         orderProductPanel.add(createLabel("<html><b>Warehouse Destination:</b></html>"));
         orderProductPanel.add(createLabel(""));
 
@@ -803,6 +810,44 @@ public class DatabaseHelper {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public String getSupplierNameByProductId(String productId) {
+        String supplierName = "";
+        String query = "SELECT s.supplier_name FROM SUPPLIER s " +
+                "JOIN PRODUCT p ON s.supplier_id = p.supplier_id " +
+                "WHERE p.product_id = ?";
+
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, productId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    supplierName = rs.getString("supplier_name");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return supplierName;
+    }
+
+    public String getCustomerAddressByEmail(String email) {
+        String address = "";
+        String query = "SELECT address FROM CUSTOMER WHERE email = ?";
+
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    address = rs.getString("address");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return address;
     }
 
 }
