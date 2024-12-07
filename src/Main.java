@@ -97,20 +97,8 @@ public class Main {
                 // ==============================================
 
                 if (item.equals("Inventory")) {
-                    JPanel inventoryPanel = new JPanel(new GridLayout(3, 1));
-                    String[] sampleProductNames = { "Product 1", "Product 2", "Product 3" };
-                    String[] sampleCategories = { "Category 1", "Category 2", "Category 3" };
-                    int[] stockQty = { 10, 20, 30 };
-
-                    for (int i = 0; i < 3; i++) {
-                        JPanel productPanel = new JPanel(new GridLayout(1, 4));
-                        JLabel productName = new JLabel("  " + sampleProductNames[i]);
-                        productPanel.add(productName);
-                        productPanel.add(new JLabel(sampleCategories[i]));
-                        productPanel.add(new JLabel("Stock Qty: " + stockQty[i]));
-                        inventoryPanel.add(productPanel);
-                    }
-                    page.add(inventoryPanel, BorderLayout.CENTER);
+                    
+                    DatabaseHelper.populateInventoryPage(page);
                     System.out.println("Navigated to Inventory Page.");
                     // End of Inventory Page
 
@@ -125,8 +113,7 @@ public class Main {
 
                     // Replaces current Panel with Home Panel
                     homePanel.removeAll();
-                    homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed height
-                                                                                     // rows
+                    homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed height rows
 
                     // Sets the Column Headers
                     JPanel homeHeaderPanel = new JPanel(new GridLayout(1, 6));
@@ -134,8 +121,7 @@ public class Main {
                     homeHeaderPanel.add(new JLabel("<html><b>Category</b></html>"));
                     homeHeaderPanel.add(new JLabel("<html><b>Description</b></html>"));
                     homeHeaderPanel.add(new JLabel("<html><b>Price</b></html>"));
-                    homeHeaderPanel.add(new JLabel("<html><b>Stock Qty</b></html>")); // New column header for stock
-                                                                                      // quantity
+                    homeHeaderPanel.add(new JLabel("<html><b>Stock Qty</b></html>")); // New column header for stock quantity
                     homeHeaderPanel.add(new JLabel("")); // Placeholder for buy button column
                     homeHeaderPanel.add(new JLabel("")); // Placeholder for wishlist button column
                     homeHeaderPanel.setPreferredSize(new Dimension(800, 60)); // Set fixed height for header

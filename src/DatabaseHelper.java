@@ -16,14 +16,15 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
+import java.sql.Statement;
 
 public class DatabaseHelper {
-    
+
     // Variables to Connect to MySQL Server
     private String dbUrl; // DB URL
     private String dbUsername; // MySQL Username
     private String dbPassword; // MySQL Password
-    
+
     private static String currentUrl = "jdbc:mysql://localhost:3306/csaaved1db";
     private static String currentUser = "root";
     private static String currentPassword = "password_here";
@@ -900,16 +901,16 @@ public class DatabaseHelper {
         String deleteOrdersQuery = "DELETE FROM ORDERS WHERE customer_id = (SELECT customer_id FROM CUSTOMER WHERE email = ?)";
         String deleteCustomerQuery = "DELETE FROM CUSTOMER WHERE email = ?";
         String incrementProductSupplyQuery = "UPDATE PRODUCT SET current_supply = current_supply + 1 WHERE product_id = ?";
-    
+
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
             conn.setAutoCommit(false); // Start transaction
-    
+
             try (PreparedStatement getOrdersStmt = conn.prepareStatement(getOrdersQuery);
-                 PreparedStatement deleteWishlistStmt = conn.prepareStatement(deleteWishlistQuery);
-                 PreparedStatement deleteOrdersStmt = conn.prepareStatement(deleteOrdersQuery);
-                 PreparedStatement incrementProductSupplyStmt = conn.prepareStatement(incrementProductSupplyQuery);
-                 PreparedStatement deleteCustomerStmt = conn.prepareStatement(deleteCustomerQuery)) {
-    
+                    PreparedStatement deleteWishlistStmt = conn.prepareStatement(deleteWishlistQuery);
+                    PreparedStatement deleteOrdersStmt = conn.prepareStatement(deleteOrdersQuery);
+                    PreparedStatement incrementProductSupplyStmt = conn.prepareStatement(incrementProductSupplyQuery);
+                    PreparedStatement deleteCustomerStmt = conn.prepareStatement(deleteCustomerQuery)) {
+
                 // Get the customer's orders
                 getOrdersStmt.setString(1, email);
                 try (ResultSet rs = getOrdersStmt.executeQuery()) {
@@ -920,31 +921,31 @@ public class DatabaseHelper {
                         incrementProductSupplyStmt.executeUpdate();
                     }
                 }
-    
+
                 // Delete related wishlist entries
                 deleteWishlistStmt.setString(1, email);
                 deleteWishlistStmt.executeUpdate();
-    
+
                 // Delete related orders
                 deleteOrdersStmt.setString(1, email);
                 deleteOrdersStmt.executeUpdate();
-    
+
                 // Delete the customer record
                 deleteCustomerStmt.setString(1, email);
                 int affectedRows = deleteCustomerStmt.executeUpdate();
-    
+
                 conn.commit(); // Commit transaction
-    
+
                 if (affectedRows > 0) {
                     System.out.println("Account deleted successfully.");
                 } else {
                     System.out.println("No account found with the given email.");
                 }
-    
+
                 // Exit the application
                 System.out.println("Closing application...");
                 System.exit(0);
-    
+
             } catch (SQLException e) {
                 conn.rollback(); // Rollback transaction if any error occurs
                 e.printStackTrace();
@@ -955,8 +956,6 @@ public class DatabaseHelper {
             System.out.println("An error occurred while establishing the database connection.");
         }
     }
-    
-    
 
     // =====================================================================
     // ============== DEFINES PRODUCT ROW UI FOR ORDER PAGE ================
@@ -1182,6 +1181,109 @@ public class DatabaseHelper {
         }
         return isSoldOut;
     }
+
+    // Fetch warehouse data from the database
+    public static List<String[]> getWarehouseData() {
+        List<String[]> warehouseData = new ArrayList<>();
+        String query = "SELECT warehouse_id, address, total_capacity, employee_count FROM WAREHOUSE";
+        try (Connection conn = DriverManager.getConnection(currentUrl, currentUser, currentPassword);
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                warehouseData.add(new String[] {
+                        rs.getString("warehouse_id"),
+                        rs.getString("address"),
+                        rs.getString("total_capacity"),
+                        rs.getString("employee_count")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return warehouseData;
+    }
+
+    // Fetch outpost data from the database
+    public static List<String[]> getOutpostData() {
+        List<String[]> outpostData = new ArrayList<>();
+        String query = "SELECT outpost_id, address, employee_count FROM OUTPOST";
+        try (Connection conn = DriverManager.getConnection(currentUrl, currentUser, currentPassword);
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                outpostData.add(new String[] {
+                        rs.getString("outpost_id"),
+                        rs.getString("address"),
+                        rs.getString("employee_count")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return outpostData;
+    }
+
+    public static void populateInventoryPage(JPanel page) {
+        // Create the main inventory panel and set up split pane
+        JPanel inventoryPanel = new JPanel(new GridLayout(1, 2));
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    
+        // Create left and right panels for warehouse and outpost UI
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        JPanel rightPanel = new JPanel(new BorderLayout());
+    
+        // Create headers panels
+        JPanel warehouseHeaderPanel = new JPanel(new GridLayout(1, 4));
+        JPanel outpostHeaderPanel = new JPanel(new GridLayout(1, 3));
+    
+        // Add headers for Warehouse sections
+        warehouseHeaderPanel.add(new JLabel("<html><b>Warehouse ID</b></html>"));
+        warehouseHeaderPanel.add(new JLabel("<html><b>Address</b></html>"));
+        warehouseHeaderPanel.add(new JLabel("<html><b>Total Capacity</b></html>"));
+        warehouseHeaderPanel.add(new JLabel("<html><b>Employee Count</b></html>"));
+        leftPanel.add(warehouseHeaderPanel, BorderLayout.NORTH);
+    
+        // Add headers for Outpost sections
+        outpostHeaderPanel.add(new JLabel("<html><b>Outpost ID</b></html>"));
+        outpostHeaderPanel.add(new JLabel("<html><b>Address</b></html>"));
+        outpostHeaderPanel.add(new JLabel("<html><b>Employee Count</b></html>"));
+        rightPanel.add(outpostHeaderPanel, BorderLayout.NORTH);
+    
+        // Create data panels
+        JPanel warehouseDataPanel = new JPanel(new GridLayout(0, 4));
+        JPanel outpostDataPanel = new JPanel(new GridLayout(0, 3));
+        leftPanel.add(new JScrollPane(warehouseDataPanel), BorderLayout.CENTER);
+        rightPanel.add(new JScrollPane(outpostDataPanel), BorderLayout.CENTER);
+    
+        // Fetch data from the database
+        List<String[]> warehouseData = getWarehouseData();
+        List<String[]> outpostData = getOutpostData();
+    
+        // Add warehouse data to the left data panel
+        for (String[] warehouse : warehouseData) {
+            warehouseDataPanel.add(new JLabel("  " + warehouse[0]));
+            warehouseDataPanel.add(new JLabel(warehouse[1]));
+            warehouseDataPanel.add(new JLabel(warehouse[2]));
+            warehouseDataPanel.add(new JLabel(warehouse[3]));
+        }
+    
+        // Add outpost data to the right data panel
+        for (String[] outpost : outpostData) {
+            outpostDataPanel.add(new JLabel("  " + outpost[0]));
+            outpostDataPanel.add(new JLabel(outpost[1]));
+            outpostDataPanel.add(new JLabel(outpost[2]));
+        }
+    
+        // Add split pane to the main inventory panel
+        inventoryPanel.setLayout(new BorderLayout());
+        inventoryPanel.add(splitPane, BorderLayout.CENTER);
+        splitPane.setLeftComponent(leftPanel);
+        splitPane.setRightComponent(rightPanel);
+    
+        page.add(inventoryPanel, BorderLayout.CENTER);
+        System.out.println("Navigated to Inventory Page.");
+    }
+    
 
     // Creates Label for Product UIs
     private static JLabel createLabel(String text) {
