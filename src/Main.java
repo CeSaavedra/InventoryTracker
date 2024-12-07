@@ -24,7 +24,6 @@ public class Main {
 
         homeWrapperPanel = new JPanel(new BorderLayout());
 
-
         // Tests whether or not the Java executable was able to connect to DB
         try {
             DatabaseConnection.getConnection();
@@ -120,35 +119,45 @@ public class Main {
                     // ==============================================
 
                 } else if (item.equals("Home")) {
+
                     // Declares DatabaseHelper Instance
                     DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
-                
+
                     // Replaces current Panel with Home Panel
                     homePanel.removeAll();
-                    homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed height rows
-                
+                    homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS)); // Use BoxLayout for fixed height
+                                                                                     // rows
+
                     // Sets the Column Headers
                     JPanel homeHeaderPanel = new JPanel(new GridLayout(1, 6));
                     homeHeaderPanel.add(new JLabel("<html><b>  Product Name</b></html>"));
                     homeHeaderPanel.add(new JLabel("<html><b>Category</b></html>"));
                     homeHeaderPanel.add(new JLabel("<html><b>Description</b></html>"));
                     homeHeaderPanel.add(new JLabel("<html><b>Price</b></html>"));
+                    homeHeaderPanel.add(new JLabel("<html><b>Stock Qty</b></html>")); // New column header for stock
+                                                                                      // quantity
                     homeHeaderPanel.add(new JLabel("")); // Placeholder for buy button column
                     homeHeaderPanel.add(new JLabel("")); // Placeholder for wishlist button column
                     homeHeaderPanel.setPreferredSize(new Dimension(800, 60)); // Set fixed height for header
                     homeHeaderPanel.setBorder(BorderFactory.createEmptyBorder());
-                
+
                     // Wrapper Panel
-                    homeWrapperPanel = new JPanel();
+                    homeWrapperPanel.removeAll(); // Ensure wrapper panel is cleared
                     homeWrapperPanel.setLayout(new BorderLayout());
                     homeWrapperPanel.add(homeHeaderPanel, BorderLayout.NORTH);
                     homeWrapperPanel.add(new JScrollPane(homePanel), BorderLayout.CENTER);
-                
+
                     // Load Products from DB
-                    dbHelper.loadProducts(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel, orderSet, frame, authenticatedUserEmail);
+                    dbHelper.loadProducts(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel,
+                            orderSet, frame, authenticatedUserEmail);
+
+                    // Add homeWrapperPanel to the page
                     page.add(homeWrapperPanel, BorderLayout.CENTER);
-                
-                
+
+                    // Revalidate and repaint the homePanel to ensure proper rendering
+                    homePanel.revalidate();
+                    homePanel.repaint();
+
                     // ==============================================
                     // =============== WISHLIST PAGE ================
                     // ==============================================
@@ -162,10 +171,11 @@ public class Main {
                     JPanel wishlistHeaderPanel = new JPanel(new GridLayout(1, 5));
                     wishlistHeaderPanel.add(new JLabel("<html><b>  Product Name</b></html>"));
                     wishlistHeaderPanel.add(new JLabel("<html><b>Category</b></html>"));
-                    wishlistHeaderPanel.add(new JLabel("<html><b>Description</b></html>"));
+                    wishlistHeaderPanel.add(new JLabel("<html><b>Stock Quant.</b></html>"));
                     wishlistHeaderPanel.add(new JLabel("<html><b>Price</b></html>"));
-                    wishlistHeaderPanel.add(new JLabel("")); // Placeholder for remove button column
-                    wishlistHeaderPanel.setPreferredSize(new Dimension(800, 60)); // Set fixed height for header
+                    wishlistHeaderPanel.add(new JLabel("")); // Empty Placeholder for Remove Button
+                    // Set Dimensions and Border of Column Headers
+                    wishlistHeaderPanel.setPreferredSize(new Dimension(800, 60));
                     wishlistHeaderPanel.setBorder(BorderFactory.createEmptyBorder());
 
                     // Wrapper panel to hold both header and content
@@ -181,7 +191,6 @@ public class Main {
                     // =============== ORDERS PAGE ==================
                     // ==============================================
                 } else if (item.equals("Orders")) {
-                    // Declares DatabaseHelper Instance
                     DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
 
                     // Replaces current Panel with Orders Panel
@@ -220,7 +229,9 @@ public class Main {
                     // Create and add the product row panel
                     JPanel productRowPanel = DatabaseHelper.createProductRowPanel(
                             productName, categoryType, totalPrice, tax, qtyPurchased, orderNo,
-                            supplierName, customerAddress, warehouseAddress, outpostAddress, estimatedDelivery);
+                            supplierName, customerAddress, warehouseAddress, outpostAddress, estimatedDelivery,
+                            ordersPanel, orderSet, homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, frame,
+                            authenticatedUserEmail);
                     ordersPanel.add(productRowPanel);
 
                     ordersPanel.revalidate();
@@ -284,15 +295,16 @@ public class Main {
 
             frame.setVisible(true);
 
-            // Pass the callback to LoginDialog
             new DatabaseHelper.LoginDialog(frame, email -> {
                 isUserAuthenticated = true;
                 authenticatedUserEmail = email;
                 System.out.println("Callback executed: " + email);
                 refreshSettingsPanel();
-                refreshOrdersPanel(ordersPanel, email);
+                refreshOrdersPanel(ordersPanel, orderSet, homePanel, homeWrapperPanel, wishlistPanel, wishlistSet,
+                        frame, email);
                 refreshProductsPanel(homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, ordersPanel, orderSet,
-                        frame); // Add this line
+                        frame);
+                refreshWishlistPanel(wishlistPanel, email);
             });
 
         });
@@ -390,7 +402,8 @@ public class Main {
         }
     } // End of Test Function
 
-    public static void refreshOrdersPanel(JPanel ordersPanel, String email) {
+    public static void refreshOrdersPanel(JPanel ordersPanel, Set<String> orderSet, JPanel homePanel,
+            JPanel homeWrapperPanel, JPanel wishlistPanel, Set<String> wishlistSet, JFrame frame, String email) {
         ordersPanel.removeAll();
         ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical alignment
 
@@ -404,7 +417,9 @@ public class Main {
                             order.getProductName(), order.getCategoryType(), String.valueOf(order.getTotalPrice()),
                             String.valueOf(order.getSalesTax()), String.valueOf(order.getQuantityPurchased()),
                             order.getOrderNumber(), order.getSupplierName(), order.getCustomerAddress(),
-                            order.getWarehouseAddress(), order.getOutpostAddress(), order.getEstimatedDeliveryDate());
+                            order.getWarehouseAddress(), order.getOutpostAddress(), order.getEstimatedDeliveryDate(),
+                            ordersPanel, orderSet, homePanel, homeWrapperPanel, wishlistPanel, wishlistSet, frame,
+                            email);
                     ordersPanel.add(orderProductPanel);
                     ordersPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between panels
                 }
@@ -436,6 +451,25 @@ public class Main {
         homePanel.revalidate();
         homePanel.repaint();
         System.out.println("Products panel refreshed.");
+    }
+
+    public static void refreshWishlistPanel(JPanel wishlistPanel, String email) {
+        wishlistPanel.removeAll();
+        wishlistPanel.setLayout(new BoxLayout(wishlistPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical alignment
+
+        if (email != null) {
+            DatabaseHelper dbHelper = new DatabaseHelper(currentUrl, currentUser, currentPassword);
+            Set<String> wishlistSet = new HashSet<>();
+            dbHelper.loadWishlist(wishlistPanel, wishlistSet, email);
+
+        } else {
+            System.out.println("User email is null.");
+            wishlistPanel.add(new JLabel("Please log in to view wishlist."));
+        }
+
+        wishlistPanel.revalidate();
+        wishlistPanel.repaint();
+        System.out.println("Wishlist panel refreshed.");
     }
 
 }
