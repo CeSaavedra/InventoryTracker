@@ -17,17 +17,27 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.sql.Statement;
-
 public class DatabaseHelper {
+    private String dbUrl;
+    private String dbUsername; 
+    private String dbPassword; 
 
-    // Variables to Connect to MySQL Server
-    private String dbUrl; // DB URL
-    private String dbUsername; // MySQL Username
-    private String dbPassword; // MySQL Password
 
+    /**     [2/2] SQL DATABASE CONNECTIVITY
+     * 
+     *      The following 3 String variables NEED to be modified in order 
+     *      for you to connect to an SQL Database Schema.
+     * 
+     *      Use the first line to connect to the URL of your DB Schema
+     *      Use the second line to input your MySQL Username
+     *      Use the third line to input your MySQL Password
+     */
     private static String currentUrl = "jdbc:mysql://localhost:3306/csaaved1db";
     private static String currentUser = "root";
     private static String currentPassword = "password_here";
+
+
+
 
     // Intiializer
     public DatabaseHelper(String dbUrl, String dbUsername, String dbPassword) {

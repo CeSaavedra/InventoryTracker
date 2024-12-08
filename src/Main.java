@@ -6,18 +6,29 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
-
 public class Main {
-
     private static JPanel settingsPanel;
     private static JPanel homeWrapperPanel;
-
     private static boolean isUserAuthenticated = false;
     private static String authenticatedUserEmail = null;
+
+
+    /**     [1/2] SQL DATABASE CONNECTIVITY
+     * 
+     *      The following 3 String variables NEED to be modified in order 
+     *      for you to connect to an SQL Database Schema.
+     * 
+     *      Use the first line to connect to the URL of your DB Schema
+     *      Use the second line to input your MySQL Username
+     *      Use the third line to input your MySQL Password
+     */
 
     private static String currentUrl = "jdbc:mysql://localhost:3306/csaaved1db";
     private static String currentUser = "root";
     private static String currentPassword = "password_here";
+
+
+
 
     // =============== MAIN FUNC OF APPLICATION ===============
     public static void main(String[] args) {
